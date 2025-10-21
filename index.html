@@ -1,191 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Smartraveller Complete World Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <style>
-  body { margin: 0; background-color: #eaf2f8; font-family: Arial, sans-serif; }
-  #map { position: relative; width: 100%; max-width: 1600px; margin: auto; }
-  .flag {
-    position: absolute;
-    width: 22px; height: 16px;
-    border: 1px solid #444;
-    border-radius: 2px;
-    cursor: pointer;
-  }
+body{margin:0;background:#eaf2f8;font-family:Arial,sans-serif;}
+#leafletmap{height:600px;width:100%;max-width:1600px;margin:auto;}
+.flag-icon{width:22px;height:16px;border:1px solid #444;border-radius:2px;cursor:pointer;}
 </style>
 </head>
 <body>
 <h2 style="text-align:center;">Smartraveller Advisory Map - All Countries</h2>
-<div id="map">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg" style="width:100%;" alt="World map" />
+<div id="leafletmap"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const flagIcon=u=>L.icon({iconUrl:u,iconSize:[22,16],iconAnchor:[11,8],className:'flag-icon'});
+const countries=[
+  // [Country, AdvisoryURL, FlagPNG, Lat, Lon]
+  // North Africa
+  ["Algeria","https://www.smartraveller.gov.au/destinations/africa/algeria","https://flagcdn.com/w20/dz.png",28.0,1.66],
+  ["Libya","https://www.smartraveller.gov.au/destinations/africa/libya","https://flagcdn.com/w20/ly.png",26.34,17.23],
+  ["Tunisia","https://www.smartraveller.gov.au/destinations/africa/tunisia","https://flagcdn.com/w20/tn.png",33.8869,9.5375],
+  ["Egypt","https://www.smartraveller.gov.au/destinations/africa/egypt","https://flagcdn.com/w20/eg.png",26.82,30.8],
+  ["Morocco","https://www.smartraveller.gov.au/destinations/africa/morocco","https://flagcdn.com/w20/ma.png",32.0,-5.0],
+  ["Mauritania","https://www.smartraveller.gov.au/destinations/africa/mauritania","https://flagcdn.com/w20/mr.png",21.0,-10.94],
+  ["Sudan","https://www.smartraveller.gov.au/destinations/africa/sudan","https://flagcdn.com/w20/sd.png",15.0,30.0],
+  ["Western Sahara","https://www.smartraveller.gov.au/destinations/africa/western-sahara","https://flagcdn.com/w20/eh.png",24.2155,-12.8858],
+  // South Africa
+  ["Angola","https://www.smartraveller.gov.au/destinations/africa/angola","https://flagcdn.com/w20/ao.png",-12.5,18.5],
+  ["Benin","https://www.smartraveller.gov.au/destinations/africa/benin","https://flagcdn.com/w20/bj.png",9.5,2.25],
+  ["Botswana","https://www.smartraveller.gov.au/destinations/africa/botswana","https://flagcdn.com/w20/bw.png",-22.0,24.0],
+  ["Burundi","https://www.smartraveller.gov.au/destinations/africa/burundi","https://flagcdn.com/w20/bi.png",-3.5,30.0],
+  ["Cameroon","https://www.smartraveller.gov.au/destinations/africa/cameroon","https://flagcdn.com/w20/cm.png",6.0,12.0],
+  ["Côte d'Ivoire","https://www.smartraveller.gov.au/destinations/africa/cote-divoire","https://flagcdn.com/w20/ci.png",8.0,-5.0],
+  ["Eritrea","https://www.smartraveller.gov.au/destinations/africa/eritrea","https://flagcdn.com/w20/er.png",15.0,39.0],
+  ["Ethiopia","https://www.smartraveller.gov.au/destinations/africa/ethiopia","https://flagcdn.com/w20/et.png",8.0,38.0],
+  ["Gabon","https://www.smartraveller.gov.au/destinations/africa/gabon","https://flagcdn.com/w20/ga.png",-1.0,11.75],
+  ["Ghana","https://www.smartraveller.gov.au/destinations/africa/ghana","https://flagcdn.com/w20/gh.png",8.0,-2.0],
+  ["Guinea","https://www.smartraveller.gov.au/destinations/africa/guinea","https://flagcdn.com/w20/gn.png",11.0,-10.0],
+  ["Kenya","https://www.smartraveller.gov.au/destinations/africa/kenya","https://flagcdn.com/w20/ke.png",1.0,38.0],
+  ["Liberia","https://www.smartraveller.gov.au/destinations/africa/liberia","https://flagcdn.com/w20/lr.png",6.5,-9.5],
+  ["Madagascar","https://www.smartraveller.gov.au/destinations/africa/madagascar","https://flagcdn.com/w20/mg.png",-20.0,47.0],
+  ["Malawi","https://www.smartraveller.gov.au/destinations/africa/malawi","https://flagcdn.com/w20/mw.png",-13.5,34.0],
+  ["Mauritius","https://www.smartraveller.gov.au/destinations/africa/mauritius","https://flagcdn.com/w20/mu.png",-20.2833,57.55],
+  ["Morocco","https://www.smartraveller.gov.au/destinations/africa/morocco","https://flagcdn.com/w20/ma.png",32.0,-5.0],
+  ["Mozambique","https://www.smartraveller.gov.au/destinations/africa/mozambique","https://flagcdn.com/w20/mz.png",-18.25,35.0],
+  ["Namibia","https://www.smartraveller.gov.au/destinations/africa/namibia","https://flagcdn.com/w20/na.png",-22.0,17.0],
+  ["Nigeria","https://www.smartraveller.gov.au/destinations/africa/nigeria","https://flagcdn.com/w20/ng.png",10.0,8.0],
+  ["Rwanda","https://www.smartraveller.gov.au/destinations/africa/rwanda","https://flagcdn.com/w20/rw.png",-2.0,30.0],
+  ["Senegal","https://www.smartraveller.gov.au/destinations/africa/senegal","https://flagcdn.com/w20/sn.png",14.0,-14.0],
+  ["South Africa","https://www.smartraveller.gov.au/destinations/africa/south-africa","https://flagcdn.com/w20/za.png",-29.0,24.0],
+  ["Sierra Leone","https://www.smartraveller.gov.au/destinations/africa/sierra-leone","https://flagcdn.com/w20/sl.png",8.5,-11.5],
+  ["Tanzania","https://www.smartraveller.gov.au/destinations/africa/tanzania","https://flagcdn.com/w20/tz.png",-6.0,35.0],
+  ["Uganda","https://www.smartraveller.gov.au/destinations/africa/uganda","https://flagcdn.com/w20/ug.png",1.0,32.0],
+  ["Zambia","https://www.smartraveller.gov.au/destinations/africa/zambia","https://flagcdn.com/w20/zm.png",-15.0,30.0],
+  ["Zimbabwe","https://www.smartraveller.gov.au/destinations/africa/zimbabwe","https://flagcdn.com/w20/zw.png",-20.0,30.0],
+  // Americas
+  ["Argentina","https://www.smartraveller.gov.au/destinations/americas/argentina","https://flagcdn.com/w20/ar.png",-34.0,-64.0],
+  ["Belize","https://www.smartraveller.gov.au/destinations/americas/belize","https://flagcdn.com/w20/bz.png",17.25,-88.75],
+  ["Bolivia","https://www.smartraveller.gov.au/destinations/americas/bolivia","https://flagcdn.com/w20/bo.png",-17.0,-65.0],
+  ["Brazil","https://www.smartraveller.gov.au/destinations/americas/brazil","https://flagcdn.com/w20/br.png",-10.0,-55.0],
+  ["Canada","https://www.smartraveller.gov.au/destinations/americas/canada","https://flagcdn.com/w20/ca.png",60.0,-95.0],
+  ["Chile","https://www.smartraveller.gov.au/destinations/americas/chile","https://flagcdn.com/w20/cl.png",-30.0,-71.0],
+  ["Colombia","https://www.smartraveller.gov.au/destinations/americas/colombia","https://flagcdn.com/w20/co.png",4.0,-72.0],
+  ["Costa Rica","https://www.smartraveller.gov.au/destinations/americas/costa-rica","https://flagcdn.com/w20/cr.png",10.0,-84.0],
+  ["Cuba","https://www.smartraveller.gov.au/destinations/americas/cuba","https://flagcdn.com/w20/cu.png",21.5,-80.0],
+  ["Dominican Republic","https://www.smartraveller.gov.au/destinations/americas/dominican-republic","https://flagcdn.com/w20/do.png",19.0,-70.6667],
+  ["Ecuador","https://www.smartraveller.gov.au/destinations/americas/ecuador","https://flagcdn.com/w20/ec.png",-2.0,-77.5],
+  ["El Salvador","https://www.smartraveller.gov.au/destinations/americas/el-salvador","https://flagcdn.com/w20/sv.png",13.8333,-88.9167],
+  ["Guatemala","https://www.smartraveller.gov.au/destinations/americas/guatemala","https://flagcdn.com/w20/gt.png",15.5,-90.25],
+  ["Honduras","https://www.smartraveller.gov.au/destinations/americas/honduras","https://flagcdn.com/w20/hn.png",15.0,-86.5],
+  ["Jamaica","https://www.smartraveller.gov.au/destinations/americas/jamaica","https://flagcdn.com/w20/jm.png",18.25,-77.5],
+  ["Mexico","https://www.smartraveller.gov.au/destinations/americas/mexico","https://flagcdn.com/w20/mx.png",23.0,-102.0],
+  ["Nicaragua","https://www.smartraveller.gov.au/destinations/americas/nicaragua","https://flagcdn.com/w20/ni.png",13.0,-85.0],
+  ["Panama","https://www.smartraveller.gov.au/destinations/americas/panama","https://flagcdn.com/w20/pa.png",9.0,-80.0],
+  ["Paraguay","https://www.smartraveller.gov.au/destinations/americas/paraguay","https://flagcdn.com/w20/py.png",-23.0,-58.0],
+  ["Peru","https://www.smartraveller.gov.au/destinations/americas/peru","https://flagcdn.com/w20/pe.png",-10.0,-76.0],
+  ["Trinidad and Tobago","https://www.smartraveller.gov.au/destinations/americas/trinidad-and-tobago","https://flagcdn.com/w20/tt.png",11.0,-61.0],
+  ["United States of America","https://www.smartraveller.gov.au/destinations/americas/united-states-america","https://flagcdn.com/w20/us.png",38.0,-97.0],
+  ["Uruguay","https://www.smartraveller.gov.au/destinations/americas/uruguay","https://flagcdn.com/w20/uy.png",-33.0,-56.0],
+  ["Venezuela","https://www.smartraveller.gov.au/destinations/americas/venezuela","https://flagcdn.com/w20/ve.png",8.0,-66.0],
+  // Asia
+  ["Afghanistan","https://www.smartraveller.gov.au/destinations/asia/afghanistan","https://flagcdn.com/w20/af.png",33.0,65.0],
+  ["Azerbaijan","https://www.smartraveller.gov.au/destinations/asia/azerbaijan","https://flagcdn.com/w20/az.png",40.5,47.5],
+  ["Bangladesh","https://www.smartraveller.gov.au/destinations/asia/bangladesh","https://flagcdn.com/w20/bd.png",24.0,90.0],
+  ["Brunei Darussalam","https://www.smartraveller.gov.au/destinations/asia/brunei-darussalam","https://flagcdn.com/w20/bn.png",4.5,114.6667],
+  ["Cambodia","https://www.smartraveller.gov.au/destinations/asia/cambodia","https://flagcdn.com/w20/kh.png",13.0,105.0],
+  ["China","https://www.smartraveller.gov.au/destinations/asia/china","https://flagcdn.com/w20/cn.png",35.0,105.0],
+  ["Indonesia","https://www.smartraveller.gov.au/destinations/asia/indonesia","https://flagcdn.com/w20/id.png",-5.0,120.0],
+  ["India","https://www.smartraveller.gov.au/destinations/asia/india","https://flagcdn.com/w20/in.png",20.0,77.0],
+  ["Iran","https://www.smartraveller.gov.au/destinations/asia/iran","https://flagcdn.com/w20/ir.png",32.0,53.0],
+  ["Iraq","https://www.smartraveller.gov.au/destinations/asia/iraq","https://flagcdn.com/w20/iq.png",33.0,44.0],
+  ["Israel","https://www.smartraveller.gov.au/destinations/asia/israel","https://flagcdn.com/w20/il.png",31.5,34.75],
+  ["Japan","https://www.smartraveller.gov.au/destinations/asia/japan","https://flagcdn.com/w20/jp.png",36.0,138.0],
+  ["Jordan","https://www.smartraveller.gov.au/destinations/asia/jordan","https://flagcdn.com/w20/jo.png",31.0,36.0],
+  ["Kazakhstan","https://www.smartraveller.gov.au/destinations/asia/kazakhstan","https://flagcdn.com/w20/kz.png",48.0,68.0],
+  ["Laos","https://www.smartraveller.gov.au/destinations/asia/laos","https://flagcdn.com/w20/la.png",18.0,105.0],
+  ["Lebanon","https://www.smartraveller.gov.au/destinations/asia/lebanon","https://flagcdn.com/w20/lb.png",33.8333,35.8333],
+  ["Malaysia","https://www.smartraveller.gov.au/destinations/asia/malaysia","https://flagcdn.com/w20/my.png",2.5,112.5],
+  ["Maldives","https://www.smartraveller.gov.au/destinations/asia/maldives","https://flagcdn.com/w20/mv.png",3.25,73.0],
+  ["Mongolia","https://www.smartraveller.gov.au/destinations/asia/mongolia","https://flagcdn.com/w20/mn.png",46.0,105.0],
+  ["Myanmar","https://www.smartraveller.gov.au/destinations/asia/myanmar","https://flagcdn.com/w20/mm.png",22.0,98.0],
+  ["Nepal","https://www.smartraveller.gov.au/destinations/asia/nepal","https://flagcdn.com/w20/np.png",28.0,84.0],
+  ["Pakistan","https://www.smartraveller.gov.au/destinations/asia/pakistan","https://flagcdn.com/w20/pk.png",30.0,70.0],
+  ["Philippines","https://www.smartraveller.gov.au/destinations/asia/philippines","https://flagcdn.com/w20/ph.png",13.0,122.0],
+  ["Qatar","https://www.smartraveller.gov.au/destinations/asia/qatar","https://flagcdn.com/w20/qa.png",25.5,51.25],
+  ["South Korea","https://www.smartraveller.gov.au/destinations/asia/south-korea","https://flagcdn.com/w20/kr.png",37.0,127.5],
+  ["Sri Lanka","https://www.smartraveller.gov.au/destinations/asia/sri-lanka","https://flagcdn.com/w20/lk.png",7.0,81.0],
+  ["Singapore","https://www.smartraveller.gov.au/destinations/asia/singapore","https://flagcdn.com/w20/sg.png",1.3667,103.8],
+  ["Syria","https://www.smartraveller.gov.au/destinations/asia/syria","https://flagcdn.com/w20/sy.png",35.0,38.0],
+  ["Taiwan","https://www.smartraveller.gov.au/destinations/asia/taiwan","https://flagcdn.com/w20/tw.png",23.5,121.0],
+  ["Tajikistan","https://www.smartraveller.gov.au/destinations/asia/tajikistan","https://flagcdn.com/w20/tj.png",39.0,71.0],
+  ["Thailand","https://www.smartraveller.gov.au/destinations/asia/thailand","https://flagcdn.com/w20/th.png",15.0,100.0],
+  ["Timor-Leste","https://www.smartraveller.gov.au/destinations/asia/timor-leste","https://flagcdn.com/w20/tl.png",-8.55,125.5167],
+  ["Turkmenistan","https://www.smartraveller.gov.au/destinations/asia/turkmenistan","https://flagcdn.com/w20/tm.png",40.0,60.0],
+  ["Uzbekistan","https://www.smartraveller.gov.au/destinations/asia/uzbekistan","https://flagcdn.com/w20/uz.png",41.0,64.0],
+  ["Vietnam","https://www.smartraveller.gov.au/destinations/asia/vietnam","https://flagcdn.com/w20/vn.png",16.0,106.0],
+  // Europe
+  ["Albania","https://www.smartraveller.gov.au/destinations/europe/albania","https://flagcdn.com/w20/al.png",41.0,20.0],
+  ["Austria","https://www.smartraveller.gov.au/destinations/europe/austria","https://flagcdn.com/w20/at.png",47.3333,13.3333],
+  ["Belarus","https://www.smartraveller.gov.au/destinations/europe/belarus","https://flagcdn.com/w20/by.png",53.0,28.0],
+  ["Belgium","https://www.smartraveller.gov.au/destinations/europe/belgium","https://flagcdn.com/w20/be.png",50.8333,4.0],
+  ["Bosnia and Herzegovina","https://www.smartraveller.gov.au/destinations/europe/bosnia-and-herzegovina","https://flagcdn.com/w20/ba.png",44.0,18.0],
+  ["Bulgaria","https://www.smartraveller.gov.au/destinations/europe/bulgaria","https://flagcdn.com/w20/bg.png",43.0,25.0],
+  ["Cyprus","https://www.smartraveller.gov.au/destinations/europe/cyprus","https://flagcdn.com/w20/cy.png",35.0,33.0],
+  ["Czech Republic","https://www.smartraveller.gov.au/destinations/europe/czech-republic","https://flagcdn.com/w20/cz.png",49.75,15.5],
+  ["Croatia","https://www.smartraveller.gov.au/destinations/europe/croatia","https://flagcdn.com/w20/hr.png",45.1667,15.5],
+  ["Estonia","https://www.smartraveller.gov.au/destinations/europe/estonia","https://flagcdn.com/w20/ee.png",59.0,26.0],
+  ["Finland","https://www.smartraveller.gov.au/destinations/europe/finland","https://flagcdn.com/w20/fi.png",64.0,26.0],
+  ["France","https://www.smartraveller.gov.au/destinations/europe/france","https://flagcdn.com/w20/fr.png",46.0,2.0],
+  ["Germany","https://www.smartraveller.gov.au/destinations/europe/germany","https://flagcdn.com/w20/de.png",51.0,9.0],
+  ["Greece","https://www.smartraveller.gov.au/destinations/europe/greece","https://flagcdn.com/w20/gr.png",39.0,22.0],
+  ["Hungary","https://www.smartraveller.gov.au/destinations/europe/hungary","https://flagcdn.com/w20/hu.png",47.0,20.0],
+  ["Ireland","https://www.smartraveller.gov.au/destinations/europe/ireland","https://flagcdn.com/w20/ie.png",53.0,-8.0],
+  ["Italy","https://www.smartraveller.gov.au/destinations/europe/italy","https://flagcdn.com/w20/it.png",42.8333,12.8333],
+  ["Latvia","https://www.smartraveller.gov.au/destinations/europe/latvia","https://flagcdn.com/w20/lv.png",57.0,25.0],
+  ["Lithuania","https://www.smartraveller.gov.au/destinations/europe/lithuania","https://flagcdn.com/w20/lt.png",56.0,24.0],
+  ["Luxembourg","https://www.smartraveller.gov.au/destinations/europe/luxembourg","https://flagcdn.com/w20/lu.png",49.75,6.1667],
+  ["Malta","https://www.smartraveller.gov.au/destinations/europe/malta","https://flagcdn.com/w20/mt.png",35.8333,14.5833],
+  ["Moldova","https://www.smartraveller.gov.au/destinations/europe/moldova","https://flagcdn.com/w20/md.png",47.0,29.0],
+  ["Montenegro","https://www.smartraveller.gov.au/destinations/europe/montenegro","https://flagcdn.com/w20/me.png",42.0,19.0],
+  ["Netherlands","https://www.smartraveller.gov.au/destinations/europe/netherlands","https://flagcdn.com/w20/nl.png",52.5,5.75],
+  ["North Macedonia","https://www.smartraveller.gov.au/destinations/europe/north-macedonia","https://flagcdn.com/w20/mk.png",41.8333,22.0],
+  ["Norway","https://www.smartraveller.gov.au/destinations/europe/norway","https://flagcdn.com/w20/no.png",62.0,10.0],
+  ["Poland","https://www.smartraveller.gov.au/destinations/europe/poland","https://flagcdn.com/w20/pl.png",52.0,20.0],
+  ["Portugal","https://www.smartraveller.gov.au/destinations/europe/portugal","https://flagcdn.com/w20/pt.png",39.5,-8.0],
+  ["Romania","https://www.smartraveller.gov.au/destinations/europe/romania","https://flagcdn.com/w20/ro.png",46.0,25.0],
+  ["Russia","https://www.smartraveller.gov.au/destinations/europe/russia","https://flagcdn.com/w20/ru.png",60.0,100.0],
+  ["Serbia","https://www.smartraveller.gov.au/destinations/europe/serbia","https://flagcdn.com/w20/rs.png",44.0,21.0],
+  ["Slovakia","https://www.smartraveller.gov.au/destinations/europe/slovakia","https://flagcdn.com/w20/sk.png",48.6667,19.5],
+  ["Slovenia","https://www.smartraveller.gov.au/destinations/europe/slovenia","https://flagcdn.com/w20/si.png",46.0,15.0],
+  ["Spain","https://www.smartraveller.gov.au/destinations/europe/spain","https://flagcdn.com/w20/es.png",40.0,-4.0],
+  ["Sweden","https://www.smartraveller.gov.au/destinations/europe/sweden","https://flagcdn.com/w20/se.png",62.0,15.0],
+  ["Switzerland","https://www.smartraveller.gov.au/destinations/europe/switzerland","https://flagcdn.com/w20/ch.png",47.0,8.0],
+  ["Türkiye","https://www.smartraveller.gov.au/destinations/europe/turkiye","https://flagcdn.com/w20/tr.png",39.0,35.0],
+  ["Ukraine","https://www.smartraveller.gov.au/destinations/europe/ukraine","https://flagcdn.com/w20/ua.png",49.0,32.0],
+  ["United Kingdom","https://www.smartraveller.gov.au/destinations/europe/united-kingdom","https://flagcdn.com/w20/gb.png",54.0,-2.0],
+  // Middle East
+  ["Bahrain","https://www.smartraveller.gov.au/destinations/middle-east/bahrain","https://flagcdn.com/w20/bh.png",26.0,50.55],
+  ["Iran","https://www.smartraveller.gov.au/destinations/middle-east/iran","https://flagcdn.com/w20/ir.png",32.0,53.0],
+  ["Iraq","https://www.smartraveller.gov.au/destinations/middle-east/iraq","https://flagcdn.com/w20/iq.png",33.0,44.0],
+  ["Israel","https://www.smartraveller.gov.au/destinations/middle-east/israel","https://flagcdn.com/w20/il.png",31.5,34.75],
+  ["Jordan","https://www.smartraveller.gov.au/destinations/middle-east/jordan","https://flagcdn.com/w20/jo.png",31.0,36.0],
+  ["Kuwait","https://www.smartraveller.gov.au/destinations/middle-east/kuwait","https://flagcdn.com/w20/kw.png",29.3375,47.6581],
+  ["Lebanon","https://www.smartraveller.gov.au/destinations/middle-east/lebanon","https://flagcdn.com/w20/lb.png",33.8333,35.8333],
+  ["Oman","https://www.smartraveller.gov.au/destinations/middle-east/oman","https://flagcdn.com/w20/om.png",21.0,57.0],
+  ["Qatar","https://www.smartraveller.gov.au/destinations/middle-east/qatar","https://flagcdn.com/w20/qa.png",25.5,51.25],
+  ["Saudi Arabia","https://www.smartraveller.gov.au/destinations/middle-east/saudi-arabia","https://flagcdn.com/w20/sa.png",25.0,45.0],
+  ["Syria","https://www.smartraveller.gov.au/destinations/middle-east/syria","https://flagcdn.com/w20/sy.png",35.0,38.0],
+  ["Türkiye","https://www.smartraveller.gov.au/destinations/middle-east/turkiye","https://flagcdn.com/w20/tr.png",39.0,35.0],
+  ["United Arab Emirates","https://www.smartraveller.gov.au/destinations/middle-east/united-arab-emirates","https://flagcdn.com/w20/ae.png",24.0,54.0],
+  ["Yemen","https://www.smartraveller.gov.au/destinations/middle-east/yemen","https://flagcdn.com/w20/ye.png",15.0,48.0],
+  // Oceania / Pacific
+  ["Australia","","https://flagcdn.com/w20/au.png",-27.0,133.0],
+  ["Fiji","https://www.smartraveller.gov.au/destinations/pacific/fiji","https://flagcdn.com/w20/fj.png",-18.0,175.0],
+  ["Guam","https://www.smartraveller.gov.au/destinations/pacific/guam","https://flagcdn.com/w20/gu.png",13.4667,144.7833],
+  ["Marshall Islands","https://www.smartraveller.gov.au/destinations/pacific/marshall-islands","https://flagcdn.com/w20/mh.png",9.0,168.0],
+  ["Niue","https://www.smartraveller.gov.au/destinations/pacific/niue","https://flagcdn.com/w20/nu.png",-19.0333,-169.8667],
+  ["New Caledonia","https://www.smartraveller.gov.au/destinations/pacific/new-caledonia","https://flagcdn.com/w20/nc.png",-21.5,165.5],
+  ["New Zealand","https://www.smartraveller.gov.au/destinations/pacific/new-zealand","https://flagcdn.com/w20/nz.png",-41.0,174.0],
+  ["Palau","https://www.smartraveller.gov.au/destinations/pacific/palau","https://flagcdn.com/w20/pw.png",7.5,134.5],
+  ["Papua New Guinea","https://www.smartraveller.gov.au/destinations/pacific/papua-new-guinea","https://flagcdn.com/w20/pg.png",-6.0,147.0],
+  ["Samoa","https://www.smartraveller.gov.au/destinations/pacific/samoa","https://flagcdn.com/w20/ws.png",-13.5833,-172.3333],
+  ["Solomon Islands","https://www.smartraveller.gov.au/destinations/pacific/solomon-islands","https://flagcdn.com/w20/sb.png",-8.0,159.0],
+  ["Tonga","https://www.smartraveller.gov.au/destinations/pacific/tonga","https://flagcdn.com/w20/to.png",-20.0,-175.0],
+  ["Vanuatu","https://www.smartraveller.gov.au/destinations/pacific/vanuatu","https://flagcdn.com/w20/vu.png",-16.0,167.0]
+];
 
-  <!-- Africa -->
-  <a href="https://www.smartraveller.gov.au/destinations/africa/angola" target="_blank" title="Angola"><img class="flag" src="https://flagcdn.com/w20/ao.png" style="top:60%;left:56%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/benin" target="_blank" title="Benin"><img class="flag" src="https://flagcdn.com/w20/bj.png" style="top:50%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/botswana" target="_blank" title="Botswana"><img class="flag" src="https://flagcdn.com/w20/bw.png" style="top:66%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/burundi" target="_blank" title="Burundi"><img class="flag" src="https://flagcdn.com/w20/bi.png" style="top:61%;left:57%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/cameroon" target="_blank" title="Cameroon"><img class="flag" src="https://flagcdn.com/w20/cm.png" style="top:52%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/cote-divoire" target="_blank" title="Côte d'Ivoire"><img class="flag" src="https://flagcdn.com/w20/ci.png" style="top:50%;left:50%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/eritrea" target="_blank" title="Eritrea"><img class="flag" src="https://flagcdn.com/w20/er.png" style="top:54%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/ethiopia" target="_blank" title="Ethiopia"><img class="flag" src="https://flagcdn.com/w20/et.png" style="top:58%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/gabon" target="_blank" title="Gabon"><img class="flag" src="https://flagcdn.com/w20/ga.png" style="top:53%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/ghana" target="_blank" title="Ghana"><img class="flag" src="https://flagcdn.com/w20/gh.png" style="top:50%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/guinea" target="_blank" title="Guinea"><img class="flag" src="https://flagcdn.com/w20/gn.png" style="top:50%;left:49%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/kenya" target="_blank" title="Kenya"><img class="flag" src="https://flagcdn.com/w20/ke.png" style="top:62%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/liberia" target="_blank" title="Liberia"><img class="flag" src="https://flagcdn.com/w20/lr.png" style="top:50%;left:48%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/madagascar" target="_blank" title="Madagascar"><img class="flag" src="https://flagcdn.com/w20/mg.png" style="top:67%;left:60%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/malawi" target="_blank" title="Malawi"><img class="flag" src="https://flagcdn.com/w20/mw.png" style="top:64%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/mauritius" target="_blank" title="Mauritius"><img class="flag" src="https://flagcdn.com/w20/mu.png" style="top:65%;left:61%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/morocco" target="_blank" title="Morocco"><img class="flag" src="https://flagcdn.com/w20/ma.png" style="top:47%;left:48%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/mozambique" target="_blank" title="Mozambique"><img class="flag" src="https://flagcdn.com/w20/mz.png" style="top:65%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/namibia" target="_blank" title="Namibia"><img class="flag" src="https://flagcdn.com/w20/na.png" style="top:68%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/nigeria" target="_blank" title="Nigeria"><img class="flag" src="https://flagcdn.com/w20/ng.png" style="top:53%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/rwanda" target="_blank" title="Rwanda"><img class="flag" src="https://flagcdn.com/w20/rw.png" style="top:60%;left:57%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/senegal" target="_blank" title="Senegal"><img class="flag" src="https://flagcdn.com/w20/sn.png" style="top:50%;left:49%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/south-africa" target="_blank" title="South Africa"><img class="flag" src="https://flagcdn.com/w20/za.png" style="top:75%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/sierra-leone" target="_blank" title="Sierra Leone"><img class="flag" src="https://flagcdn.com/w20/sl.png" style="top:51%;left:48%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/tanzania" target="_blank" title="Tanzania"><img class="flag" src="https://flagcdn.com/w20/tz.png" style="top:62%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/uganda" target="_blank" title="Uganda"><img class="flag" src="https://flagcdn.com/w20/ug.png" style="top:61%;left:58%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/zambia" target="_blank" title="Zambia"><img class="flag" src="https://flagcdn.com/w20/zm.png" style="top:66%;left:57%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/africa/zimbabwe" target="_blank" title="Zimbabwe"><img class="flag" src="https://flagcdn.com/w20/zw.png" style="top:67%;left:58%;" /></a>
-
-  <!-- Americas -->
-  <a href="https://www.smartraveller.gov.au/destinations/americas/argentina" target="_blank" title="Argentina"><img class="flag" src="https://flagcdn.com/w20/ar.png" style="top:70%;left:28%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/belize" target="_blank" title="Belize"><img class="flag" src="https://flagcdn.com/w20/bz.png" style="top:46%;left:22%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/bolivia" target="_blank" title="Bolivia"><img class="flag" src="https://flagcdn.com/w20/bo.png" style="top:60%;left:27%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/brazil" target="_blank" title="Brazil"><img class="flag" src="https://flagcdn.com/w20/br.png" style="top:60%;left:28%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/canada" target="_blank" title="Canada"><img class="flag" src="https://flagcdn.com/w20/ca.png" style="top:32%;left:19%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/chile" target="_blank" title="Chile"><img class="flag" src="https://flagcdn.com/w20/cl.png" style="top:69%;left:28%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/colombia" target="_blank" title="Colombia"><img class="flag" src="https://flagcdn.com/w20/co.png" style="top:52%;left:26%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/costa-rica" target="_blank" title="Costa Rica"><img class="flag" src="https://flagcdn.com/w20/cr.png" style="top:45%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/cuba" target="_blank" title="Cuba"><img class="flag" src="https://flagcdn.com/w20/cu.png" style="top:44%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/dominican-republic" target="_blank" title="Dominican Republic"><img class="flag" src="https://flagcdn.com/w20/do.png" style="top:43%;left:24%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/ecuador" target="_blank" title="Ecuador"><img class="flag" src="https://flagcdn.com/w20/ec.png" style="top:58%;left:26%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/el-salvador" target="_blank" title="El Salvador"><img class="flag" src="https://flagcdn.com/w20/sv.png" style="top:44%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/guatemala" target="_blank" title="Guatemala"><img class="flag" src="https://flagcdn.com/w20/gt.png" style="top:45%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/honduras" target="_blank" title="Honduras"><img class="flag" src="https://flagcdn.com/w20/hn.png" style="top:45%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/jamaica" target="_blank" title="Jamaica"><img class="flag" src="https://flagcdn.com/w20/jm.png" style="top:44%;left:24%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/mexico" target="_blank" title="Mexico"><img class="flag" src="https://flagcdn.com/w20/mx.png" style="top:43%;left:21%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/nicaragua" target="_blank" title="Nicaragua"><img class="flag" src="https://flagcdn.com/w20/ni.png" style="top:45%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/panama" target="_blank" title="Panama"><img class="flag" src="https://flagcdn.com/w20/pa.png" style="top:46%;left:23%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/paraguay" target="_blank" title="Paraguay"><img class="flag" src="https://flagcdn.com/w20/py.png" style="top:63%;left:27%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/peru" target="_blank" title="Peru"><img class="flag" src="https://flagcdn.com/w20/pe.png" style="top:60%;left:27%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/trinidad-and-tobago" target="_blank" title="Trinidad and Tobago"><img class="flag" src="https://flagcdn.com/w20/tt.png" style="top:49%;left:25%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/uruguay" target="_blank" title="Uruguay"><img class="flag" src="https://flagcdn.com/w20/uy.png" style="top:66%;left:28%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/americas/venezuela" target="_blank" title="Venezuela"><img class="flag" src="https://flagcdn.com/w20/ve.png" style="top:54%;left:26%;" /></a>
-
-  <!-- Asia -->
-  <a href="https://www.smartraveller.gov.au/destinations/asia/afghanistan" target="_blank" title="Afghanistan"><img class="flag" src="https://flagcdn.com/w20/af.png" style="top:44%;left:74%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/azerbaijan" target="_blank" title="Azerbaijan"><img class="flag" src="https://flagcdn.com/w20/az.png" style="top:40%;left:64%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/bangladesh" target="_blank" title="Bangladesh"><img class="flag" src="https://flagcdn.com/w20/bd.png" style="top:54%;left:70%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/brunei-darussalam" target="_blank" title="Brunei Darussalam"><img class="flag" src="https://flagcdn.com/w20/bn.png" style="top:60%;left:75%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/cambodia" target="_blank" title="Cambodia"><img class="flag" src="https://flagcdn.com/w20/kh.png" style="top:57%;left:74%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/china" target="_blank" title="China"><img class="flag" src="https://flagcdn.com/w20/cn.png" style="top:47%;left:75%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/indonesia" target="_blank" title="Indonesia"><img class="flag" src="https://flagcdn.com/w20/id.png" style="top:63%;left:79%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/india" target="_blank" title="India"><img class="flag" src="https://flagcdn.com/w20/in.png" style="top:54%;left:70%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/iran" target="_blank" title="Iran"><img class="flag" src="https://flagcdn.com/w20/ir.png" style="top:43%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/iraq" target="_blank" title="Iraq"><img class="flag" src="https://flagcdn.com/w20/iq.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/israel" target="_blank" title="Israel"><img class="flag" src="https://flagcdn.com/w20/il.png" style="top:43%;left:62%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/japan" target="_blank" title="Japan"><img class="flag" src="https://flagcdn.com/w20/jp.png" style="top:46%;left:86%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/jordan" target="_blank" title="Jordan"><img class="flag" src="https://flagcdn.com/w20/jo.png" style="top:43%;left:63%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/kazakhstan" target="_blank" title="Kazakhstan"><img class="flag" src="https://flagcdn.com/w20/kz.png" style="top:38%;left:68%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/kuwait" target="_blank" title="Kuwait"><img class="flag" src="https://flagcdn.com/w20/kw.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/laos" target="_blank" title="Laos"><img class="flag" src="https://flagcdn.com/w20/la.png" style="top:56%;left:73%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/lebanon" target="_blank" title="Lebanon"><img class="flag" src="https://flagcdn.com/w20/lb.png" style="top:43%;left:62%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/malaysia" target="_blank" title="Malaysia"><img class="flag" src="https://flagcdn.com/w20/my.png" style="top:60%;left:77%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/maldives" target="_blank" title="Maldives"><img class="flag" src="https://flagcdn.com/w20/mv.png" style="top:59%;left:70%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/mongolia" target="_blank" title="Mongolia"><img class="flag" src="https://flagcdn.com/w20/mn.png" style="top:42%;left:80%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/myanmar" target="_blank" title="Myanmar"><img class="flag" src="https://flagcdn.com/w20/mm.png" style="top:57%;left:74%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/nepal" target="_blank" title="Nepal"><img class="flag" src="https://flagcdn.com/w20/np.png" style="top:54%;left:69%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/pakistan" target="_blank" title="Pakistan"><img class="flag" src="https://flagcdn.com/w20/pk.png" style="top:52%;left:68%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/philippines" target="_blank" title="Philippines"><img class="flag" src="https://flagcdn.com/w20/ph.png" style="top:56%;left:79%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/qatar" target="_blank" title="Qatar"><img class="flag" src="https://flagcdn.com/w20/qa.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/south-korea" target="_blank" title="South Korea"><img class="flag" src="https://flagcdn.com/w20/kr.png" style="top:44%;left:85%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/sri-lanka" target="_blank" title="Sri Lanka"><img class="flag" src="https://flagcdn.com/w20/lk.png" style="top:57%;left:70%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/singapore" target="_blank" title="Singapore"><img class="flag" src="https://flagcdn.com/w20/sg.png" style="top:60%;left:77%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/syria" target="_blank" title="Syria"><img class="flag" src="https://flagcdn.com/w20/sy.png" style="top:43%;left:63%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/taiwan" target="_blank" title="Taiwan"><img class="flag" src="https://flagcdn.com/w20/tw.png" style="top:45%;left:81%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/tajikistan" target="_blank" title="Tajikistan"><img class="flag" src="https://flagcdn.com/w20/tj.png" style="top:43%;left:70%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/thailand" target="_blank" title="Thailand"><img class="flag" src="https://flagcdn.com/w20/th.png" style="top:56%;left:73%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/timor-leste" target="_blank" title="Timor-Leste"><img class="flag" src="https://flagcdn.com/w20/tl.png" style="top:62%;left:79%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/turkmenistan" target="_blank" title="Turkmenistan"><img class="flag" src="https://flagcdn.com/w20/tm.png" style="top:42%;left:69%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/uzbekistan" target="_blank" title="Uzbekistan"><img class="flag" src="https://flagcdn.com/w20/uz.png" style="top:42%;left:69%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/asia/vietnam" target="_blank" title="Vietnam"><img class="flag" src="https://flagcdn.com/w20/vn.png" style="top:56%;left:74%;" /></a>
-
-  <!-- Europe -->
-  <a href="https://www.smartraveller.gov.au/destinations/europe/albania" target="_blank" title="Albania"><img class="flag" src="https://flagcdn.com/w20/al.png" style="top:41%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/austria" target="_blank" title="Austria"><img class="flag" src="https://flagcdn.com/w20/at.png" style="top:42%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/belarus" target="_blank" title="Belarus"><img class="flag" src="https://flagcdn.com/w20/by.png" style="top:37%;left:56%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/belgium" target="_blank" title="Belgium"><img class="flag" src="https://flagcdn.com/w20/be.png" style="top:40%;left:49%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/bosnia-and-herzegovina" target="_blank" title="Bosnia and Herzegovina"><img class="flag" src="https://flagcdn.com/w20/ba.png" style="top:43%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/bulgaria" target="_blank" title="Bulgaria"><img class="flag" src="https://flagcdn.com/w20/bg.png" style="top:42%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/cyprus" target="_blank" title="Cyprus"><img class="flag" src="https://flagcdn.com/w20/cy.png" style="top:45%;left:55%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/czech-republic" target="_blank" title="Czech Republic"><img class="flag" src="https://flagcdn.com/w20/cz.png" style="top:40%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/croatia" target="_blank" title="Croatia"><img class="flag" src="https://flagcdn.com/w20/hr.png" style="top:43%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/estonia" target="_blank" title="Estonia"><img class="flag" src="https://flagcdn.com/w20/ee.png" style="top:37%;left:55%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/finland" target="_blank" title="Finland"><img class="flag" src="https://flagcdn.com/w20/fi.png" style="top:35%;left:55%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/france" target="_blank" title="France"><img class="flag" src="https://flagcdn.com/w20/fr.png" style="top:41%;left:50%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/germany" target="_blank" title="Germany"><img class="flag" src="https://flagcdn.com/w20/de.png" style="top:40%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/greece" target="_blank" title="Greece"><img class="flag" src="https://flagcdn.com/w20/gr.png" style="top:46%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/hungary" target="_blank" title="Hungary"><img class="flag" src="https://flagcdn.com/w20/hu.png" style="top:41%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/ireland" target="_blank" title="Ireland"><img class="flag" src="https://flagcdn.com/w20/ie.png" style="top:41%;left:45%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/italy" target="_blank" title="Italy"><img class="flag" src="https://flagcdn.com/w20/it.png" style="top:44%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/latvia" target="_blank" title="Latvia"><img class="flag" src="https://flagcdn.com/w20/lv.png" style="top:37%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/lithuania" target="_blank" title="Lithuania"><img class="flag" src="https://flagcdn.com/w20/lt.png" style="top:38%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/luxembourg" target="_blank" title="Luxembourg"><img class="flag" src="https://flagcdn.com/w20/lu.png" style="top:40%;left:50%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/malta" target="_blank" title="Malta"><img class="flag" src="https://flagcdn.com/w20/mt.png" style="top:48%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/moldova" target="_blank" title="Moldova"><img class="flag" src="https://flagcdn.com/w20/md.png" style="top:41%;left:56%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/montenegro" target="_blank" title="Montenegro"><img class="flag" src="https://flagcdn.com/w20/me.png" style="top:43%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/netherlands" target="_blank" title="Netherlands"><img class="flag" src="https://flagcdn.com/w20/nl.png" style="top:39%;left:49%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/north-macedonia" target="_blank" title="North Macedonia"><img class="flag" src="https://flagcdn.com/w20/mk.png" style="top:42%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/norway" target="_blank" title="Norway"><img class="flag" src="https://flagcdn.com/w20/no.png" style="top:33%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/poland" target="_blank" title="Poland"><img class="flag" src="https://flagcdn.com/w20/pl.png" style="top:38%;left:53%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/portugal" target="_blank" title="Portugal"><img class="flag" src="https://flagcdn.com/w20/pt.png" style="top:45%;left:46%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/romania" target="_blank" title="Romania"><img class="flag" src="https://flagcdn.com/w20/ro.png" style="top:41%;left:56%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/russia" target="_blank" title="Russia"><img class="flag" src="https://flagcdn.com/w20/ru.png" style="top:36%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/serbia" target="_blank" title="Serbia"><img class="flag" src="https://flagcdn.com/w20/rs.png" style="top:43%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/slovakia" target="_blank" title="Slovakia"><img class="flag" src="https://flagcdn.com/w20/sk.png" style="top:40%;left:54%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/slovenia" target="_blank" title="Slovenia"><img class="flag" src="https://flagcdn.com/w20/si.png" style="top:43%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/spain" target="_blank" title="Spain"><img class="flag" src="https://flagcdn.com/w20/es.png" style="top:44%;left:48%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/sweden" target="_blank" title="Sweden"><img class="flag" src="https://flagcdn.com/w20/se.png" style="top:34%;left:52%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/switzerland" target="_blank" title="Switzerland"><img class="flag" src="https://flagcdn.com/w20/ch.png" style="top:41%;left:51%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/turkiye" target="_blank" title="Türkiye"><img class="flag" src="https://flagcdn.com/w20/tr.png" style="top:43%;left:59%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/ukraine" target="_blank" title="Ukraine"><img class="flag" src="https://flagcdn.com/w20/ua.png" style="top:38%;left:57%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/europe/united-kingdom" target="_blank" title="United Kingdom"><img class="flag" src="https://flagcdn.com/w20/gb.png" style="top:39%;left:47%;" /></a>
-
-  <!-- Middle East -->
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/bahrain" target="_blank" title="Bahrain"><img class="flag" src="https://flagcdn.com/w20/bh.png" style="top:43%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/iran" target="_blank" title="Iran"><img class="flag" src="https://flagcdn.com/w20/ir.png" style="top:43%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/iraq" target="_blank" title="Iraq"><img class="flag" src="https://flagcdn.com/w20/iq.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/israel" target="_blank" title="Israel"><img class="flag" src="https://flagcdn.com/w20/il.png" style="top:43%;left:62%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/jordan" target="_blank" title="Jordan"><img class="flag" src="https://flagcdn.com/w20/jo.png" style="top:43%;left:63%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/kuwait" target="_blank" title="Kuwait"><img class="flag" src="https://flagcdn.com/w20/kw.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/lebanon" target="_blank" title="Lebanon"><img class="flag" src="https://flagcdn.com/w20/lb.png" style="top:43%;left:62%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/oman" target="_blank" title="Oman"><img class="flag" src="https://flagcdn.com/w20/om.png" style="top:44%;left:67%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/qatar" target="_blank" title="Qatar"><img class="flag" src="https://flagcdn.com/w20/qa.png" style="top:44%;left:65%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/saudi-arabia" target="_blank" title="Saudi Arabia"><img class="flag" src="https://flagcdn.com/w20/sa.png" style="top:44%;left:66%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/syria" target="_blank" title="Syria"><img class="flag" src="https://flagcdn.com/w20/sy.png" style="top:43%;left:63%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/turkiye" target="_blank" title="Türkiye"><img class="flag" src="https://flagcdn.com/w20/tr.png" style="top:43%;left:59%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/united-arab-emirates" target="_blank" title="United Arab Emirates"><img class="flag" src="https://flagcdn.com/w20/ae.png" style="top:44%;left:66%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/middle-east/yemen" target="_blank" title="Yemen"><img class="flag" src="https://flagcdn.com/w20/ye.png" style="top:45%;left:65%;" /></a>
-
-  <!-- Oceania / Pacific -->
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/australia" target="_blank" title="Australia"><img class="flag" src="https://flagcdn.com/w20/au.png" style="top:80%;left:88%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/fiji" target="_blank" title="Fiji"><img class="flag" src="https://flagcdn.com/w20/fj.png" style="top:75%;left:90%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/guam" target="_blank" title="Guam"><img class="flag" src="https://flagcdn.com/w20/gu.png" style="top:72%;left:92%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/marshall-islands" target="_blank" title="Marshall Islands"><img class="flag" src="https://flagcdn.com/w20/mh.png" style="top:74%;left:93%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/niue" target="_blank" title="Niue"><img class="flag" src="https://flagcdn.com/w20/nu.png" style="top:78%;left:91%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/new-caledonia" target="_blank" title="New Caledonia"><img class="flag" src="https://flagcdn.com/w20/nc.png" style="top:77%;left:90%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/new-zealand" target="_blank" title="New Zealand"><img class="flag" src="https://flagcdn.com/w20/nz.png" style="top:85%;left:92%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/palau" target="_blank" title="Palau"><img class="flag" src="https://flagcdn.com/w20/pw.png" style="top:73%;left:94%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/papua-new-guinea" target="_blank" title="Papua New Guinea"><img class="flag" src="https://flagcdn.com/w20/pg.png" style="top:72%;left:90%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/samoa" target="_blank" title="Samoa"><img class="flag" src="https://flagcdn.com/w20/ws.png" style="top:75%;left:92%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/solomon-islands" target="_blank" title="Solomon Islands"><img class="flag" src="https://flagcdn.com/w20/sb.png" style="top:73%;left:90%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/tonga" target="_blank" title="Tonga"><img class="flag" src="https://flagcdn.com/w20/to.png" style="top:78%;left:93%;" /></a>
-  <a href="https://www.smartraveller.gov.au/destinations/pacific/vanuatu" target="_blank" title="Vanuatu"><img class="flag" src="https://flagcdn.com/w20/vu.png" style="top:75%;left:91%;" /></a>
-
-</div>
+const map=L.map('leafletmap').setView([10,20],2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:"© OpenStreetMap contributors"
+}).addTo(map);
+countries.forEach(([n,u,f,lat,lon])=>{
+const marker=L.marker([lat,lon],{icon:flagIcon(f)}).addTo(map);
+marker.on('click',()=>{window.open(u,'_blank')});
+});
+</script>
 </body>
 </html>
