@@ -1,8 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<meta http-equiv='cache-control' content='no-cache'> 
+<meta http-equiv='expires' content='0'> 
+<meta http-equiv='pragma' content='no-cache'>
+  
 <title>Travel Map</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
@@ -13,10 +19,8 @@
     position:relative;
   }
   #basicInfoToggleLabel {
-    position:absolute;
-    right:10px;
-    top:50%;
-    transform: translateY(-50%);
+    text-align:center;
+    position:relative;
     font-weight: normal;
     cursor: pointer;
     font-size: 14px;
@@ -30,22 +34,17 @@
 <body>
 <h3 style="position:relative; text-align:center;">
   Travel Risk & Info Map
-  <div style="display: inline-block; text-align: center; margin-left: 10px;">
-    <label id="basicInfoToggleLabel" style="cursor:pointer; font-weight:normal; font-size:12px;">
-      ☎️💲🔌<input type="checkbox" id="basicInfoToggle" style="margin-left:6px; vertical-align:middle;">
-    </label>
-  </div>
 </h3>
 <div id="leafletmap"></div>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 // Create a marker icon showing flag plus optional info below it
-const createFlagLabelIcon = (flagUrl, isoCode = '', areaCode = '', currencyCode = '', plugType = '', showInfo = false) => {
+const createFlagLabelIcon = (flagUrl, isoCode = '', areaCode = '', currencyCode = '', plugType = '', showInfo = false, lon = 0) => {
   const fixedWidth = 90; // fixed icon width, prevent shifting
   const infoHtml = showInfo ? `<div style="font-weight:bold; color:navy; font-family: Arial, sans-serif; font-size:11px; margin: 2px 0 0 0; white-space: nowrap;">
-    ${isoCode}: ${areaCode}|${currencyCode}|${plugType}
+    ${isoCode}: ${areaCode}|${currencyCode}|${plugType}|${getOfficialCapitalTime(isoCode)}
   </div>` : '';
-
+  
   const html = `<div style="text-align:center; display: inline-block; width: ${fixedWidth}px;">
     <img src="${flagUrl}" style="width:22px; height:16px; border:1px solid #444; border-radius:2px; display:block; margin: 0 auto;"/>
     ${infoHtml}
@@ -59,6 +58,15 @@ const createFlagLabelIcon = (flagUrl, isoCode = '', areaCode = '', currencyCode 
   });
 };
 
+  const getOfficialCapitalTime = (isoCode) => {
+  const tz = capitalTimeZones[isoCode];
+  if (!tz) return '';
+  const now = new Date();
+  return new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', timeZone: tz
+  }).format(now);
+};
+  
   const countries = [
   ["Algeria","https://www.smartraveller.gov.au/destinations/africa/algeria","https://flagcdn.com/w20/dz.png",28.0,1.66,"DZ","+213","DZD","CF"],
   ["Libya","https://www.smartraveller.gov.au/destinations/africa/libya","https://flagcdn.com/w20/ly.png",26.34,17.23,"LY","+218","LYD","CF"],
@@ -226,26 +234,200 @@ const createFlagLabelIcon = (flagUrl, isoCode = '', areaCode = '', currencyCode 
   ["Vanuatu","https://www.smartraveller.gov.au/destinations/pacific/vanuatu","https://flagcdn.com/w20/vu.png",-16.0,167.0,"VU","+678","VUV","I"]
 ];
 
+const capitalTimeZones = {
+  "DZ": "Africa/Algiers",
+  "LY": "Africa/Tripoli",
+  "TN": "Africa/Tunis",
+  "EG": "Africa/Cairo",
+  "MA": "Africa/Casablanca",
+  "MR": "Africa/Nouakchott",
+  "SD": "Africa/Khartoum",
+  "AO": "Africa/Luanda",
+  "BJ": "Africa/Porto-Novo",
+  "BW": "Africa/Gaborone",
+  "BI": "Africa/Bujumbura",
+  "CM": "Africa/Douala",
+  "CI": "Africa/Abidjan",
+  "ER": "Africa/Asmara",
+  "ET": "Africa/Addis_Ababa",
+  "GA": "Africa/Libreville",
+  "GH": "Africa/Accra",
+  "GN": "Africa/Conakry",
+  "KE": "Africa/Nairobi",
+  "LR": "Africa/Monrovia",
+  "MG": "Indian/Antananarivo",
+  "MW": "Africa/Blantyre",
+  "MU": "Indian/Mauritius",
+  "MZ": "Africa/Maputo",
+  "NA": "Africa/Windhoek",
+  "NG": "Africa/Lagos",
+  "RW": "Africa/Kigali",
+  "SN": "Africa/Dakar",
+  "ZA": "Africa/Johannesburg",
+  "TZ": "Africa/Dar_es_Salaam",
+  "UG": "Africa/Kampala",
+  "ZM": "Africa/Lusaka",
+  "ZW": "Africa/Harare",
+  "AR": "America/Argentina/Buenos_Aires",
+  "BZ": "America/Belize",
+  "BO": "America/La_Paz",
+  "BR": "America/Sao_Paulo",
+  "CA": "America/Toronto",
+  "CL": "America/Santiago",
+  "CO": "America/Bogota",
+  "CR": "America/Costa_Rica",
+  "CU": "America/Havana",
+  "DO": "America/Santo_Domingo",
+  "EC": "America/Guayaquil",
+  "SV": "America/El_Salvador",
+  "GT": "America/Guatemala",
+  "GY": "America/Guyana",
+  "HN": "America/Tegucigalpa",
+  "JM": "America/Jamaica",
+  "MX": "America/Mexico_City",
+  "NI": "America/Managua",
+  "PA": "America/Panama",
+  "PY": "America/Asuncion",
+  "PE": "America/Lima",
+  "BS": "America/Nassau",
+  "TT": "America/Port_of_Spain",
+  "US": "America/New_York",
+  "UY": "America/Montevideo",
+  "VE": "America/Caracas",
+  "AF": "Asia/Kabul",
+  "AZ": "Asia/Baku",
+  "BD": "Asia/Dhaka",
+  "BN": "Asia/Brunei",
+  "KH": "Asia/Phnom_Penh",
+  "CN": "Asia/Shanghai",
+  "ID": "Asia/Jakarta",
+  "IN": "Asia/Kolkata",
+  "IR": "Asia/Tehran",
+  "IQ": "Asia/Baghdad",
+  "IL": "Asia/Jerusalem",
+  "JP": "Asia/Tokyo",
+  "JO": "Asia/Amman",
+  "KZ": "Asia/Almaty",
+  "LA": "Asia/Vientiane",
+  "LB": "Asia/Beirut",
+  "MY": "Asia/Kuala_Lumpur",
+  "MV": "Indian/Maldives",
+  "MN": "Asia/Ulaanbaatar",
+  "MM": "Asia/Yangon",
+  "NP": "Asia/Kathmandu",
+  "KP": "Asia/Pyongyang",
+  "PK": "Asia/Karachi",
+  "PH": "Asia/Manila",
+  "QA": "Asia/Qatar",
+  "KR": "Asia/Seoul",
+  "LK": "Asia/Colombo",
+  "SG": "Asia/Singapore",
+  "SY": "Asia/Damascus",
+  "TW": "Asia/Taipei",
+  "TJ": "Asia/Dushanbe",
+  "TH": "Asia/Bangkok",
+  "TL": "Asia/Dili",
+  "TM": "Asia/Ashgabat",
+  "UZ": "Asia/Tashkent",
+  "VN": "Asia/Ho_Chi_Minh",
+  "AL": "Europe/Tirane",
+  "AT": "Europe/Vienna",
+  "BY": "Europe/Minsk",
+  "BE": "Europe/Brussels",
+  "BA": "Europe/Sarajevo",
+  "BG": "Europe/Sofia",
+  "CY": "Asia/Nicosia",
+  "CZ": "Europe/Prague",
+  "HR": "Europe/Zagreb",
+  "EE": "Europe/Tallinn",
+  "FI": "Europe/Helsinki",
+  "FR": "Europe/Paris",
+  "DE": "Europe/Berlin",
+  "GR": "Europe/Athens",
+  "HU": "Europe/Budapest",
+  "IS": "Atlantic/Reykjavik",
+  "IE": "Europe/Dublin",
+  "IT": "Europe/Rome",
+  "LV": "Europe/Riga",
+  "LT": "Europe/Vilnius",
+  "LU": "Europe/Luxembourg",
+  "MT": "Europe/Malta",
+  "MD": "Europe/Chisinau",
+  "ME": "Europe/Podgorica",
+  "NL": "Europe/Amsterdam",
+  "MK": "Europe/Skopje",
+  "NO": "Europe/Oslo",
+  "PL": "Europe/Warsaw",
+  "PT": "Europe/Lisbon",
+  "RO": "Europe/Bucharest",
+  "RU": "Europe/Moscow",
+  "RS": "Europe/Belgrade",
+  "SK": "Europe/Bratislava",
+  "SI": "Europe/Ljubljana",
+  "ES": "Europe/Madrid",
+  "SE": "Europe/Stockholm",
+  "CH": "Europe/Zurich",
+  "TR": "Europe/Istanbul",
+  "UA": "Europe/Kiev",
+  "GB": "Europe/London",
+  "BH": "Asia/Bahrain",
+  "AE": "Asia/Dubai",
+  "YE": "Asia/Aden",
+  "AU": "Australia/Sydney",
+  "FJ": "Pacific/Fiji",
+  "GU": "Pacific/Guam",
+  "MH": "Pacific/Majuro",
+  "NZ": "Pacific/Auckland",
+  "PG": "Pacific/Port_Moresby",
+  "WS": "Pacific/Apia",
+  "SB": "Pacific/Guadalcanal",
+  "TO": "Pacific/Tongatapu",
+  "VU": "Pacific/Efate"
+  // Extend as needed
+};
+
+  
 const map = L.map('leafletmap').setView([10, 20], 2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: "© OpenStreetMap contributors"
 }).addTo(map);
 
+map.on('click', (e) => {
+  const zoom = map.getZoom();
+  map.setZoom(zoom + 1);
+});
+
 const markers = [];
 countries.forEach(([name, url, flag, lat, lon, isoCode, areaCode, currencyCode, plugType]) => {
   const marker = L.marker([lat, lon], {
-    icon: createFlagLabelIcon(flag)
+    icon: createFlagLabelIcon(flag, isoCode, areaCode, currencyCode, plugType, false, lon)
   }).addTo(map);
-  marker.on('click', () => window.open(url, '_blank'));
-  markers.push({ marker, flag, isoCode, areaCode, currencyCode, plugType });
+ marker.on('click', (e) => {
+  e.originalEvent.preventDefault();   // Optional but can prevent default behavior
+  window.open(url, '_blank', 'noopener,noreferrer');
+});
+  markers.push({ marker, flag, isoCode, areaCode, currencyCode, plugType, lon });
 });
 
-document.getElementById('basicInfoToggle').addEventListener('change', e => {
-  const showInfo = e.target.checked;
-  markers.forEach(({ marker, flag, isoCode, areaCode, currencyCode, plugType }) => {
-    marker.setIcon(createFlagLabelIcon(flag, isoCode, areaCode, currencyCode, plugType, showInfo));
+window.addEventListener('DOMContentLoaded', () => {
+  const basicInfoToggle = document.getElementById('basicInfoToggle');
+  basicInfoToggle.addEventListener('change', e => {
+    const showInfo = e.target.checked;
+    const plugSection = document.getElementById('plugTypesSection');
+    plugSection.style.display = showInfo ? 'block' : 'none';
+
+    if (showInfo) {
+      map.setView([52.0, 20.0], 5); // Zoom and center to Poland
+    } else {
+      map.setView([10, 20], 2); // Zoom out to default location
+    }
+
+    markers.forEach(({ marker, flag, isoCode, areaCode, currencyCode, plugType, lon }) => {
+      marker.setIcon(createFlagLabelIcon(flag, isoCode, areaCode, currencyCode, plugType, showInfo, lon));
+    });
   });
 });
+
 </script>
 <div id="region-links" style="text-align:center; margin:8px 0; font-family: Arial, sans-serif;">
   <span style="font-weight:bold; margin-right: 10px;">Regional Risk Maps:</span>
@@ -256,7 +438,16 @@ document.getElementById('basicInfoToggle').addEventListener('change', e => {
   <a href="https://www.smartraveller.gov.au/destinations/Middle%20East" target="_blank" style="margin: 0 8px;">Middle East</a>
   <a href="https://www.smartraveller.gov.au/destinations/Pacific" target="_blank" style="margin: 0 8px;">Pacific</a>
 </div>
-<div style="text-align:center; margin-top:20px; font-family: Arial, sans-serif; max-width: 480px; margin-left: auto; margin-right: auto;">
+
+<h3 style="position:relative; text-align:center;">
+  <div style="display: inline-block; text-align: center;">
+    <label id="basicInfoToggleLabel" style="cursor:pointer; font-weight:normal; font-size:12px;">
+    <input type="checkbox" id="basicInfoToggle" style="margin-left:6px; vertical-align:middle;">Additional info: ☎️ Area Code 💲Currency 🔌 Plug Type 🕥 Time (Capital)
+    </label>
+  </div>
+</h3>
+  
+<div id="plugTypesSection" style="display:none; text-align:center; margin-top:20px; font-family: Arial, sans-serif; max-width: 480px; margin-left: auto; margin-right: auto;">
   <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">Plug Types:</div>
   <div style="display: flex; justify-content: center; gap: 1px;">
   <img src="https://raw.githubusercontent.com/aceg-pl/rsk/main/plug_ABCD.jpeg" alt="Plug ABCD" style="width: 70%; border: 1px solid #ccc; border-radius: 4px;" />
@@ -267,5 +458,6 @@ document.getElementById('basicInfoToggle').addEventListener('change', e => {
   <img src="https://raw.githubusercontent.com/aceg-pl/rsk/main/plug_MNOA.jpeg" alt="Plug MNOA" style="width: 70%; border: 1px solid #ccc; border-radius: 4px;" />
 </div>
 </div>
+
 </body>
 </html>
