@@ -19,17 +19,18 @@
     position:relative;
   }
   #basicInfoToggleLabel {
-    cursor: pointer; 
-    font-weight: normal; 
-    font-size: 12px;
-    text-align: center;
-    display: inline-block;
-    position: relative;
-  }
-  #basicInfoToggle {
-    margin-left: 6px; 
-    vertical-align: middle;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+  margin: 8px 0;
+}
+#basicInfoToggle {
+  margin-right:8px;
+}
   #plugTypesSection {
     display:none; 
     text-align:center; 
@@ -74,9 +75,10 @@
 
 <div style="display:flex; justify-content:center; align-items:center; margin:8px 0;">
   <input type="checkbox" id="basicInfoToggle" style="margin-right:8px; vertical-align:middle;">
-  <label for="basicInfoToggle" style="font-weight:normal; font-size:12px; cursor:pointer; vertical-align:middle;">
-    Extra Info: ☎️ Area Code 💲Currency 🔌 Plug Type 🕥 Time (Capital) ☀️ Weather
-  </label>
+  <label id="basicInfoToggleLabel" for="basicInfoToggle">
+  <input type="checkbox" id="basicInfoToggle" style="margin-right:8px;">
+  Extra Info: ☎️ Area Code 💲Currency 🔌 Plug Type 🕥 Time (Capital) ☀️ Weather
+</label>
 </div>
 
 <div id="plugTypesSection">
