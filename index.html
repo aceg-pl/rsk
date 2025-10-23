@@ -603,5 +603,144 @@ window.addEventListener('DOMContentLoaded', () => {
   <a href="https://www.musement.com" target="_blank">Musement</a>
 </div>
 
+
+<div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">Trip Preparation List</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root { --bg:#fafafa; --fg:#222; --muted:#666; --card:#fff; --border:#ddd; --accent:#0b6; }
+body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+header { padding:16px; border-bottom:1px solid var(--border); background:#fff; }
+main { display:grid; gap:16px; padding:16px; max-width:1100px; margin:0 auto; }
+.grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; }
+h2,h3 { margin:0 0 8px; }
+label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+input, select, textarea { width:100%; box-sizing:border-box; padding:8px; border:1px solid var(--border); border-radius:6px; font:inherit; background:#fff; }
+textarea { min-height:72px; }
+.row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.muted { color:var(--muted); font-size:12px; }
+.warning { background:#fff7d6; border:1px solid #e2c200; color:#5a4b00; padding:8px; border-radius:6px; font-size:13px; }
+button { padding:10px 14px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; }
+button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+#output { white-space:pre-wrap; }
+fieldset { border:1px solid var(--border); border-radius:8px; padding:8px; }
+legend { font-size:12px; color:#444; padding:0 6px; }
+@media print {
+  header, #formCard, #actions, #apiKeyWrap { display:none !important; }
+  body { background:#fff; }
+  .card { border:0; }
+}
+</style>
+
+<header>
+  <style>h2 {text-align: center;}</style>
+  <h2>Trip Preparation List</h2>
+</header>
+
+<main>
+  <div class="card" id="formCard">
+   <input hidden id="apiKey" type="password" value="AIzaSyBY8kS43G0ugI7MNPvkZKQmisEXYEP6y4U">
+   <input hidden id="model" value="gemini-2.0-flash">
+    <h3>Trip details</h3>
+    <div class="grid">
+      <div><label>Traveler age</label><input id="age" type="number" min="0" placeholder="e.g. 40" value="" required></div>
+      <div><label>Gender</label>
+        <select id="gender"><option>male</option><option>female</option></select>
+      </div>
+      <div><label>Nationality (ISO-2)</label><select id="nationality"></select></div>
+      <div><label>Destination country (ISO-2)</label><select id="country"></select></div>
+      <div><label>Destination city/region</label><input id="city" placeholder="e.g. New York" value="" required></div>
+      <div><label>Trip type</label>
+        <select id="tripType"><option>business</option><option>leisure</option><option>adventure</option><option>family</option></select>
+      </div>
+      <div><label>Start date</label><input id="start" type="date" required></div>
+      <div><label>End date</label><input id="end" type="date" required></div>
+
+      <div>
+        <fieldset><legend>Activities</legend>
+          <div class="row">
+            <label><input type="checkbox" name="act" value="hiking"> hiking</label>
+            <label><input type="checkbox" name="act" value="beach"> beach</label>
+            <label><input type="checkbox" name="act" value="culinary" checked> culinary</label>
+            <label><input type="checkbox" name="act" value="snorkeling"> snorkeling</label>
+          </div>
+        </fieldset>
+      </div>
+      <div><label>Special considerations</label><textarea id="notes" placeholder="e.g. medications, dietary needs"></textarea></div>
+      <div><label>Language</label><select id="lang"><option value="en">English</option><option value="pl">Polski</option></select></div>
+                </div>
+
+    <div class="row" id="actions" style="margin-top:12px;">
+      <button class="primary" id="generateBtn">Generate plan</button>
+      <button id="printBtn">Print / Save PDF</button>
+      <span class="muted" id="status"></span>
+    </div>
+  </div>
+
+  <div class="card" id="resultCard">
+    <h3>Plan output</h3>
+    <div id="output">Fill the form and click “Generate plan”.</div>
+  </div>
+</main>
+
+<script>
+// ISO country data
+const ISO_COUNTRIES = {"PL":"Poland","MX":"Mexico","US":"United States","GB":"United Kingdom","DE":"Germany","FR":"France","ES":"Spain","IT":"Italy","JP":"Japan","CN":"China","CA":"Canada","AU":"Australia","BR":"Brazil","AR":"Argentina","ZA":"South Africa","IN":"India","RU":"Russia","KR":"South Korea"}; // trimmed list for brevity
+
+// Helpers
+const $=id=>document.getElementById(id);
+function populateCountries(sel,data,defaultCode){sel.innerHTML="";Object.entries(data).sort((a,b)=>a[1].localeCompare(b[1])).forEach(([code,name])=>{const o=document.createElement("option");o.value=code;o.text=`${name} (${code})`;if(code===defaultCode)o.selected=true;sel.appendChild(o);});}
+function inferSeasonFromDate(d){if(!d)return"";const m=new Date(d).getMonth()+1;return m<=2||m===12?"winter":m<=5?"spring":m<=8?"summer":"autumn";}
+function readActivities(){return Array.from(document.querySelectorAll('input[name="act"]:checked')).map(i=>i.value).join(", ");}
+
+// Prompt builder
+function buildPrompt(){
+  const age=$("age").value,gender=$("gender").value,nationality=$("nationality").value,countryCode=$("country").value,countryName=ISO_COUNTRIES[countryCode],city=$("city").value.trim(),start=$("start").value,end=$("end").value,tripType=$("tripType").value,activities=readActivities(),lang=$("lang").value,notes=$("notes").value||"none",season=inferSeasonFromDate(start);
+  if(!start||!end) throw new Error("Please select travel dates.");
+  return {prompt:`You are a travel preparation assistant. Generate a structured trip-readiness brief for:
+- Traveler: age ${age}, gender ${gender}, nationality ${nationality}
+- Destination: ${city}, ${countryName} (${countryCode})
+- Dates: ${start} to ${end} (season: ${season})
+- Trip type: ${tripType}; Activities: ${activities||"none"}
+- Considerations: ${notes}
+
+Include these sections: Visa & Entry, Health & Vaccinations, Safety & Emergency Contacts, Weather & Alerts, Local Transportation & Tickets, Taxis & Ride-hailing, Packing Checklist (with reasons), Customs & Etiquette, Top Attractions & Food, Useful Extras. Use valid Markdown formatting (## headings, - bullet lists, - [ ] checkboxes for packing list).
+
+Packing list: 50 most important items, checkbox style with rationale. Write in language ${lang}, ≤5000 words. End with: Reminder: Always verify visa, entry, and health requirements with official sources; they change.`};
+}
+
+// Gemini API call
+async function callGeminiDirect(prompt,apiKey,model){
+  const endpoint=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const body={contents:[{role:"user",parts:[{text:prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:1800}};
+  const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
+  const data=await res.json();
+  let text="";if(Array.isArray(data?.candidates)){for(const c of data.candidates){if(Array.isArray(c?.content?.parts)) text+=c.content.parts.map(p=>p.text||"").join("");}}
+  if(!text.trim()) throw new Error("Empty response from Gemini");
+  return text.trim();
+}
+
+// Events
+$("generateBtn").addEventListener("click",async()=>{
+  const apiKey=$("apiKey").value.trim(),model=$("model").value;
+  if(!apiKey){alert("Paste your Gemini API key.");return;}
+  try{$("status").textContent="Generating…";$("output").textContent="Working…";
+    const {prompt}=buildPrompt();
+    const text=await callGeminiDirect(prompt,apiKey,model);
+    $("output").innerHTML = marked.parse(text);
+    $("output").textContent=text;
+    $("status").textContent="Done. Review and Print/Save as PDF.";
+  }catch(e){$("status").textContent="Error: "+e.message;$("output").textContent="Failed to generate plan.";console.error(e);}
+});
+$("printBtn").addEventListener("click",()=>window.print());
+
+// Init
+populateCountries($("country"),ISO_COUNTRIES,"US");
+populateCountries($("nationality"),ISO_COUNTRIES,"PL");
+</script>
+
+
 </body>
 </html>
