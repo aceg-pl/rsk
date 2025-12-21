@@ -520,6 +520,40 @@ map.on('click', () => {
   map.setZoom(map.getZoom() + 1);
 });
 
+const nightLayer = L.layerGroup().addTo(map);
+function drawNight(){
+  nightLayer.clearLayers();
+
+  const now = new Date();
+  const sun = SunCalc.getPosition(now, 0, 0);
+  const lng = -sun.azimuth * 180 / Math.PI;
+  const lat = sun.altitude * 180 / Math.PI;
+
+  const night = L.polygon([
+    [-90, -180],
+    [-90, 180],
+    [90, 180],
+    [90, -180]
+  ], {
+    fillColor: '#000',
+    fillOpacity: 0.18,
+    stroke: false
+  });
+
+  const dayCircle = L.circle([lat, lng], {
+    radius: 10000000, // ~ hemisphere
+    fillColor: '#000',
+    fillOpacity: 0,
+    stroke: false
+  });
+
+  nightLayer.addLayer(night);
+  nightLayer.addLayer(dayCircle);
+}
+
+drawNight();
+setInterval(drawNight, 600000);
+
 const climateCanvas = L.canvas({padding:0.5});
 const climateLayer = L.layerGroup().addTo(map);
 
