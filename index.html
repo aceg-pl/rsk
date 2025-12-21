@@ -520,6 +520,11 @@ map.on('click', () => {
   map.setZoom(map.getZoom() + 1);
 });
 
+ const tempGradient = L.tileLayer(
+  'https://maps.open-meteo.com/tiles/temperature/{z}/{x}/{y}.png',
+  {opacity:.3,attribution:'© Open-Meteo'}
+).addTo(map); 
+
 const markers = [];
 countries.forEach(([name, url, flag, lat, lon, isoCode, areaCode, currencyCode, plugType]) => {
   const marker = L.marker([lat, lon], {
