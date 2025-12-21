@@ -520,10 +520,20 @@ map.on('click', () => {
   map.setZoom(map.getZoom() + 1);
 });
 
- const tempGradient = L.tileLayer(
-  'https://maps.open-meteo.com/tiles/temperature/{z}/{x}/{y}.png',
-  {opacity:.3,attribution:'© Open-Meteo'}
-).addTo(map); 
+const climateCanvas = L.canvas({padding:0.5});
+const climateLayer = L.layerGroup().addTo(map);
+
+function drawClimate(){
+  climateLayer.clearLayers();
+  for(let lat=-90;lat<90;lat+=5){
+    const t=Math.abs(lat)/90; // 0=equator,1=pole
+    const c=`rgba(${Math.round(255*t)},${Math.round(80*(1-t))},${Math.round(255*(1-t))},0.15)`;
+    L.rectangle([[lat,-180],[lat+5,180]],{
+      stroke:false,fill:true,fillColor:c,fillOpacity:1,renderer:climateCanvas
+    }).addTo(climateLayer);
+  }
+}
+drawClimate();
 
 const markers = [];
 countries.forEach(([name, url, flag, lat, lon, isoCode, areaCode, currencyCode, plugType]) => {
