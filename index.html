@@ -526,8 +526,8 @@ const climateLayer = L.layerGroup().addTo(map);
 function drawClimate(){
   climateLayer.clearLayers();
   for(let lat=-90;lat<90;lat+=5){
-    const t=Math.abs(lat)/90; // 0=equator,1=pole
-    const c=`rgba(${Math.round(255*t)},${Math.round(80*(1-t))},${Math.round(255*(1-t))},0.15)`;
+    const t = Math.cos(lat * Math.PI / 180);
+    const c = `rgba(${Math.round(255*(1-t))},${Math.round(100*t)},${Math.round(255*t)},0.18)`;
     L.rectangle([[lat,-180],[lat+5,180]],{
       stroke:false,fill:true,fillColor:c,fillOpacity:1,renderer:climateCanvas
     }).addTo(climateLayer);
