@@ -523,17 +523,10 @@ map.on('click', () => {
 const climateCanvas = L.canvas({padding:0.5});
 const climateLayer = L.layerGroup().addTo(map);
 
-function drawClimate(){
-  climateLayer.clearLayers();
-  for(let lat=-90;lat<90;lat+=5){
-    const t = Math.cos(lat * Math.PI / 180);
-    const c = `rgba(${Math.round(255*(1-t))},${Math.round(100*t)},${Math.round(255*t)},0.18)`;
-    L.rectangle([[lat,-180],[lat+5,180]],{
-      stroke:false,fill:true,fillColor:c,fillOpacity:1,renderer:climateCanvas
-    }).addTo(climateLayer);
-  }
-}
-drawClimate();
+L.tileLayer(
+  `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=4575a07f6a58adf7e40c3450678b8eeb`,
+  {opacity:0.3}
+).addTo(map);
 
 const markers = [];
 countries.forEach(([name, url, flag, lat, lon, isoCode, areaCode, currencyCode, plugType]) => {
